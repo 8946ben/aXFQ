@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <!-- 纯本地应用：不加载任何远程内容。file:// 页面的 'self' 是 opaque origin，
+       写 CSP script-src 'self' 会连本地脚本/图片一起挡掉，故不启用 CSP。 -->
+  <link rel="stylesheet" href="ball.css">
+</head>
+<body>
+  <div id="ball" class="ball">
+    <svg class="ring" viewBox="0 0 124 124" aria-hidden="true">
+      <circle class="ring-bg" cx="62" cy="62" r="56"></circle>
+      <circle id="ring-fg" class="ring-fg" cx="62" cy="62" r="56"></circle>
+    </svg>
+    <div class="disc">
+      <img id="face" alt="A-SOUL" draggable="false">
+    </div>
+    <div id="badge" class="badge"><span id="badge-mode">专注</span><b id="badge-time">25:00</b></div>
+    <div id="toast" class="toast"></div>
+  </div>
+  <script src="ball.js"></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <!-- 纯本地应用：不加载任何远程内容。file:// 页面的 'self' 是 opaque origin，
+       写 CSP script-src 'self' 会连本地脚本/图片一起挡掉，故不启用 CSP。 -->
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div class="shell">
+    <div class="top-accent"></div>
+
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-mark">A</span>
+        <div>
+          <div class="brand-title">A-SOUL 悬浮球</div>
+          <div class="brand-sub">番茄钟 · 便签 · 最近访问</div>
+        </div>
+      </div>
+      <div class="chars" id="chars"></div>
+      <button class="icon-btn" id="btn-settings" title="设置" aria-label="设置">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3.2"/>
+          <path d="M19.1 14.4a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a1.9 1.9 0 1 1 0-3.8h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a1.9 1.9 0 1 1 3.8 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a1.9 1.9 0 1 1 0 3.8h-.1a1.6 1.6 0 0 0-1.5 1z"/>
+        </svg>
+      </button>
+      <button class="icon-btn close" id="btn-close" title="收起面板" aria-label="收起面板">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </header>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="pomodoro" class="tab active">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 5V3M9 3h6"/></svg>番茄钟
+      </button>
+      <button data-tab="notes" class="tab">
+        <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>便签
+      </button>
+      <button data-tab="recent" class="tab">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>最近访问
+      </button>
+    </nav>
+
+    <main class="views">
+      <!-- ─── 番茄钟 ─── -->
+      <section class="view active" id="view-pomodoro">
+        <div class="dial-wrap">
+          <div class="dial" id="dial" title="按住表盘拖动设置时长">
+            <svg class="dial-svg" viewBox="0 0 200 200">
+              <g class="dial-ticks" id="dial-ticks"></g>
+              <circle class="dial-track" cx="100" cy="100" r="84"></circle>
+              <circle class="dial-fill" id="dial-fill" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"></circle>
+              <circle class="dial-knob" id="dial-knob" cx="100" cy="16" r="6.5"></circle>
+            </svg>
+            <div class="dial-center">
+              <div class="dial-mode" id="hero-mode">专注</div>
+              <div class="dial-time" id="hero-time">25:00</div>
+              <div class="dial-hint" id="hero-hint">拖动表盘设置时长</div>
+            </div>
+            <span class="dial-lap" id="dial-lap"></span>
+          </div>
+          <div class="dial-tip">
+            <span id="dial-tip">一圈 60 分钟 · 两圈 2 小时</span>
+            <button class="tip-link" id="btn-back-focus" hidden>回到专注</button>
+          </div>
+        </div>
+
+        <div class="preset-row" id="preset-row" hidden></div>
+
+        <div class="controls two">
+          <button class="btn primary" id="btn-start">开始专注</button>
+          <button class="btn ghost" id="btn-reset" title="重置当前计时">重置</button>
+        </div>
+
+        <button class="stats-entry" id="btn-stats">
+          <span class="se-main">今日 <b id="stat-today">0</b> 个 · 专注 <b id="stat-min">0</b> 分钟</span>
+          <span class="se-link">查看统计 ›</span>
+        </button>
+      </section>
+
+      <!-- ─── 便签 ─── -->
+      <section class="view" id="view-notes">
+        <div class="view-toolbar">
+          <span id="notes-count">0 条便签</span>
+          <button class="btn small primary" id="btn-new-note">+ 新建便签</button>
+        </div>
+        <div class="notes-list" id="notes-list"></div>
+        <div class="empty" id="notes-empty">
+          <img id="notes-empty-img" alt="">
+          <p>还没有便签</p>
+          <span>点右上角，把突然想到的事记下来</span>
+        </div>
+      </section>
+
+      <!-- ─── 最近访问的文件 / 打开的文件夹 ─── -->
+      <section class="view" id="view-recent">
+        <div class="source-bar">
+          <div class="source-info">
+            <span class="source-label">Windows 最近使用的项目</span>
+            <span class="source-path" id="recent-stat" title="">读取中…</span>
+          </div>
+          <div class="dir-actions">
+            <button class="icon-btn" id="btn-open-recent" title="打开「最近使用的项目」文件夹">
+              <svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/><path d="M3 7V5h6l2 2"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-refresh" title="刷新">
+              <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="filter-row" id="filter-row">
+          <button data-filter="all" class="active">全部</button>
+          <button data-filter="file">文件</button>
+          <button data-filter="folder">文件夹</button>
+          <span class="filter-count" id="filter-count"></span>
+        </div>
+        <div class="file-list" id="file-list"></div>
+        <div class="empty" id="files-empty">
+          <p>最近使用的项目里还没有内容</p>
+          <span>打开文件、或在资源管理器里进入文件夹后，回来刷新</span>
+        </div>
+        <div class="tip">点击条目直接打开 · 右侧按钮定位到所在位置</div>
+      </section>
+
+      <!-- ─── 专注统计 ─── -->
+      <section class="view" id="view-stats">
+        <div class="sub-head">
+          <button class="icon-btn back" id="btn-stats-back" title="返回番茄钟">
+            <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <span class="sub-title">专注统计</span>
+          <span class="sub-note">最近 7 天</span>
+        </div>
+
+        <div class="stat-cards">
+          <div class="stat-card"><b id="sc-today">0</b><span>今日番茄</span></div>
+          <div class="stat-card"><b id="sc-min">0</b><span>今日分钟</span></div>
+          <div class="stat-card"><b id="sc-total">0</b><span>累计番茄</span></div>
+          <div class="stat-card"><b id="sc-totalmin">0</b><span>累计分钟</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">最近 7 天 <span>分钟</span></div>
+          <div class="week-chart" id="week-chart"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">完成记录 <span id="hist-count"></span></div>
+          <div class="hist-list" id="hist-list"></div>
+          <div class="empty small" id="hist-empty">
+            <p>还没有记录</p>
+            <span>完成第一个番茄后会出现在这里</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 设置 ─── -->
+      <section class="view" id="view-settings">
+        <div class="sub-head">
+          <button class="icon-btn back" id="btn-settings-back" title="返回番茄钟">
+            <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <span class="sub-title">设置</span>
+          <span class="sub-note">番茄钟</span>
+        </div>
+
+        <div class="card">
+          <div class="card-head">完成后的行为</div>
+          <div class="options">
+            <label class="chk"><input type="checkbox" id="opt-auto"> 自动开始下一段</label>
+            <label class="chk"><input type="checkbox" id="opt-sound" checked> 完成提示音</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">我的标签 <span id="preset-count">0 个</span></div>
+          <div class="card-hint">添加后会出现在番茄钟按钮行，点一下套用它的时长与表情。拖动表盘只调整本次计时，不会改动这里配好的时长。</div>
+          <div class="preset-list" id="preset-list"></div>
+          <div class="empty small" id="preset-empty">
+            <p>还没有自定义标签</p>
+            <span>比如「深度工作 50 分钟」，配一句话和一张表情</span>
+          </div>
+          <button class="btn small primary full" id="btn-add-preset">+ 添加标签</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- 标签编辑面板 -->
+    <div class="sheet" id="preset-editor" hidden>
+      <div class="sheet-card">
+        <div class="sheet-head">
+          <span id="pe-title">新标签</span>
+          <button class="icon-btn" id="pe-close" title="关闭">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+
+        <label class="field">
+          <span>名称</span>
+          <input id="pe-label" maxlength="12" placeholder="例如：深度工作" autocomplete="off">
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>时长（分钟）</span>
+            <input id="pe-minutes" type="number" min="1" max="180" value="25">
+          </label>
+          <div class="field">
+            <span>类型</span>
+            <div class="seg" id="pe-kind">
+              <button data-kind="focus" class="active">专注</button>
+              <button data-kind="break">休息</button>
+            </div>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>完成后说的话</span>
+          <input id="pe-message" maxlength="60" placeholder="例如：辛苦啦，起来走两步～" autocomplete="off">
+        </label>
+
+        <div class="field">
+          <span>完成后的表情</span>
+          <div class="emote-grid" id="pe-emotes"></div>
+        </div>
+
+        <div class="sheet-actions">
+          <button class="btn ghost danger" id="pe-delete" hidden>删除</button>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="pe-cancel">取消</button>
+          <button class="btn primary" id="pe-save">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span id="footer-char">当前伙伴：嘉然</span>
+      <label class="chk"><input type="checkbox" id="opt-top" checked> 窗口置顶</label>
+    </footer>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="panel.js"></script>
+</body>
+</html>

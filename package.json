@@ -1,0 +1,30 @@
+{
+  "name": "asoul-floating-ball",
+  "version": "1.0.0",
+  "description": "A-SOUL 悬浮球：番茄钟 / 便签 / 最近访问的文件与文件夹",
+  "main": "main.js",
+  "scripts": {
+    "start": "node launch.js",
+    "dist": "electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.ben.asoulball",
+    "productName": "A-SOUL 悬浮球",
+    "asar": true,
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "assets/icon.ico"
+    }
+  }
+}

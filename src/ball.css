@@ -1,0 +1,65 @@
+* { box-sizing: border-box; }
+html, body {
+  width: 124px; height: 124px; margin: 0; padding: 0;
+  background: transparent; overflow: hidden;
+  user-select: none; -webkit-user-select: none;
+  font-family: "Microsoft YaHei UI", "PingFang SC", sans-serif;
+}
+.ball {
+  position: relative; width: 124px; height: 124px;
+  cursor: grab; -webkit-app-region: no-drag;
+  transition: transform .18s ease;
+}
+.ball.dragging { cursor: grabbing; transform: scale(1.06); }
+.ball:hover { transform: scale(1.05); }
+.ball.dragging:hover { transform: scale(1.06); }
+
+.ring { position: absolute; inset: 0; width: 124px; height: 124px; transform: rotate(-90deg); }
+.ring-bg, .ring-fg { fill: none; stroke-width: 5; }
+.ring-bg { stroke: rgba(255,255,255,.75); }
+.ring-fg {
+  stroke: var(--accent, #ff6fa5);
+  stroke-linecap: round;
+  stroke-dasharray: 351.86;
+  stroke-dashoffset: 351.86;
+  transition: stroke-dashoffset .45s linear, stroke .3s ease;
+  filter: drop-shadow(0 0 3px var(--accent, #ff6fa5));
+}
+
+.disc {
+  position: absolute; left: 12px; top: 12px; width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 22%, #ffffff 0%, var(--soft, #ffe6f0) 78%);
+  border: 2px solid rgba(255,255,255,.92);
+  box-shadow: 0 6px 18px rgba(40,20,60,.22), inset 0 0 12px rgba(255,255,255,.7);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.disc img { width: 92px; height: 92px; object-fit: contain; pointer-events: none; }
+.ball.running .disc { animation: breathe 3.2s ease-in-out infinite; }
+@keyframes breathe {
+  0%,100% { box-shadow: 0 6px 18px rgba(40,20,60,.22), 0 0 0 0 var(--glow, rgba(255,111,165,.45)); }
+  50%     { box-shadow: 0 6px 18px rgba(40,20,60,.22), 0 0 0 8px transparent; }
+}
+
+.badge {
+  position: absolute; left: 50%; bottom: 1px; transform: translateX(-50%);
+  display: none; align-items: center; gap: 5px; white-space: nowrap;
+  padding: 2px 9px; border-radius: 999px;
+  background: rgba(255,255,255,.96); color: #3a2b46;
+  border: 1.5px solid var(--accent, #ff6fa5);
+  box-shadow: 0 3px 10px rgba(40,20,60,.2);
+  font-size: 10px; line-height: 16px;
+}
+.badge.show { display: flex; }
+.badge span { opacity: .6; }
+.badge b { font-size: 11px; font-variant-numeric: tabular-nums; letter-spacing: .3px; }
+
+.toast {
+  position: absolute; left: 50%; top: -14px; transform: translate(-50%, -4px);
+  padding: 5px 12px; border-radius: 10px; white-space: nowrap;
+  background: rgba(45,28,58,.92); color: #fff; font-size: 11px;
+  opacity: 0; pointer-events: none; transition: opacity .22s ease, transform .22s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
