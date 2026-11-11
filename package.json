@@ -22,9 +22,24 @@
       "assets/**/*",
       "package.json"
     ],
+    "directories": {
+      "output": "dist"
+    },
     "win": {
       "target": ["nsis", "portable"],
       "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "A-SOUL 悬浮球",
+      "artifactName": "ASOUL-Floating-Ball-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "ASOUL-Floating-Ball-Portable-${version}.${ext}"
     }
   }
 }
