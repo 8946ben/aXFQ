@@ -39,6 +39,8 @@ contextBridge.exposeInMainWorld('asoul', {
   debugStatus: () => ipcRenderer.invoke('debug:status'),
   quit: () => ipcRenderer.invoke('app:quit'),
   setAlwaysOnTop: (v) => ipcRenderer.invoke('app:set-always-on-top', v),
+  setAutoStart: (v) => ipcRenderer.invoke('app:set-auto-start', v),
+  autoStartState: () => ipcRenderer.invoke('app:auto-start-state'),
 
   on: (channel, cb) => {
     if (!CHANNELS.includes(channel)) return () => {};

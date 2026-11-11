@@ -208,6 +208,10 @@ html, body {
 .card-head { font-size: 11px; font-weight: 700; color: var(--ink); margin-bottom: 6px; display: flex; justify-content: space-between; }
 .card-head span { font-weight: 400; color: var(--muted); font-size: 10px; }
 .card-hint { font-size: 9.5px; color: var(--muted); line-height: 1.5; margin: -2px 0 8px; }
+.card-hint.warn { color: #c2703f; }
+#autostart-hint { margin-top: 5px; }
+.chk.off { opacity: .5; cursor: default; }
+.chk.off input { cursor: default; }
 .options { display: flex; gap: 14px; margin-top: 0; flex-wrap: wrap; }
 .chk { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted); cursor: pointer; user-select: none; }
 .chk input { accent-color: var(--accent); width: 13px; height: 13px; cursor: pointer; margin: 0; }

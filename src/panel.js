@@ -30,6 +30,7 @@ let currentView = 'pomodoro';
 let notes = [], recentItems = [], recentFilter = 'all';
 let noteSaveTimer = null, toastTimer = null;
 let editingPreset = null, peKind = 'focus', peEmote = 'done';
+let envInfo = null;   // { portable, exePath }
 const dial = { dragging: false, angle: 0, last: 0 };
 
 // ───────── 通用 ─────────
@@ -456,12 +457,27 @@ async function refreshStats() {
 }
 
 // ───────── 设置 ─────────
+function syncAutoStart() {
+  const box = $('opt-autostart');
+  if (!box) return;
+  const portable = !!(envInfo && envInfo.portable);
+  box.disabled = portable;
+  box.checked = portable ? false : !!(state && state.autoStart);
+  $('autostart-row').classList.toggle('off', portable);
+  const hint = $('autostart-hint');
+  hint.textContent = portable
+    ? '便携版每次从临时目录启动，系统里留不住自启项。换成安装版就能用。'
+    : '登录 Windows 后自动在桌面显示悬浮球。';
+  hint.classList.toggle('warn', portable);
+}
+
 function syncSettings() {
   if (!state) return;
   const p = state.pomodoro;
   $('opt-auto').checked = !!p.autoNext;
   $('opt-sound').checked = p.sound !== false;
   $('opt-top').checked = !!state.alwaysOnTop;
+  syncAutoStart();
 }
 
 function renderPresetList() {
@@ -620,6 +636,15 @@ function bind() {
   $('opt-auto').addEventListener('change', (e) => api.patchState({ pomodoro: { autoNext: e.target.checked } }));
   $('opt-sound').addEventListener('change', (e) => api.patchState({ pomodoro: { sound: e.target.checked } }));
   $('opt-top').addEventListener('change', (e) => api.setAlwaysOnTop(e.target.checked));
+  $('opt-autostart').addEventListener('change', async (e) => {
+    const r = await api.setAutoStart(e.target.checked);
+    if (!r || r.ok === false) {
+      e.target.checked = false;
+      toast(r && r.reason === 'portable' ? '便携版不支持开机自启，请用安装版' : '开启开机自启失败');
+      return;
+    }
+    toast(r.autoStart ? '已开启开机自启' : '已关闭开机自启');
+  });
 
   // 标签编辑
   $('btn-add-preset').addEventListener('click', () => openEditor(null));
@@ -664,6 +689,7 @@ function bind() {
     if (currentView === 'settings') {
       $('opt-auto').checked = !!s.pomodoro.autoNext;
       $('opt-sound').checked = s.pomodoro.sound !== false;
+      syncAutoStart();
       renderPresetList();
     }
   });
@@ -682,6 +708,7 @@ function bind() {
 (async () => {
   const boot = await api.bootstrap();
   state = boot.state; timer = boot.timer; characters = boot.characters; emotes = boot.emotes || [];
+  envInfo = boot.env || null;
   notes = Array.isArray(state.notes) ? state.notes.slice() : [];
   if (!Array.isArray(state.presets)) state.presets = [];
   buildChars();

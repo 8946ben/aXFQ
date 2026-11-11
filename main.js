@@ -420,6 +420,45 @@ function applyAlwaysOnTop() {
   }
 }
 
+// 便携版是自解压包：每次运行先解压到 %TEMP%\<固定 hash>\ 再启动，退出即删。
+// 指向那里的自启项在下次开机时必然落空，所以直接不允许开启。
+function isPortableRun() {
+  try {
+    const tmp = path.resolve(os.tmpdir()).toLowerCase() + path.sep;
+    return path.resolve(process.execPath).toLowerCase().startsWith(tmp);
+  } catch (_) {
+    return false;
+  }
+}
+
+// 自启项的 path/args 必须读写一致，否则 getLoginItemSettings 匹配不到自己写的项
+function autoStartOptions() {
+  return { path: process.execPath, args: app.isPackaged ? [] : [ROOT] };
+}
+
+function systemAutoStartOn() {
+  try { return !!app.getLoginItemSettings(autoStartOptions()).openAtLogin; } catch (_) { return false; }
+}
+
+function setAutoStart(on) {
+  const want = !!on;
+  if (want && isPortableRun()) {
+    return { ok: false, reason: 'portable', autoStart: false };
+  }
+  state.autoStart = want;
+  saveState();
+  try {
+    // 打包版 exe 本身就是应用；开发模式在 electron.exe 后要跟上项目目录才能跑起来
+    app.setLoginItemSettings({ openAtLogin: want, ...autoStartOptions() });
+  } catch (err) {
+    console.error('[A-SOUL] autostart failed:', err.message);
+    return { ok: false, reason: 'error', error: err.message, autoStart: state.autoStart };
+  }
+  rebuildTray();
+  broadcast('state:changed', state);
+  return { ok: true, autoStart: state.autoStart };
+}
+
 // ────────────────────────────── 悬浮球窗口 ──────────────────────────────
 function createBall() {
   const pos = initialBallPos();
@@ -555,10 +594,7 @@ function rebuildTray() {
       else { ballWin.showInactive(); state.ballVisible = true; }
       saveState(); rebuildTray();
     } },
-    { label: '开机自启', type: 'checkbox', checked: state.autoStart, click: (item) => {
-      state.autoStart = item.checked; saveState();
-      try { app.setLoginItemSettings({ openAtLogin: state.autoStart }); } catch (_) {}
-    } },
+    { label: '开机自启', type: 'checkbox', checked: state.autoStart, click: (item) => setAutoStart(item.checked) },
     { type: 'separator' },
     { label: '退出', click: () => { quitting = true; app.quit(); } },
   ]);
@@ -613,6 +649,7 @@ function registerIPC() {
   ipcMain.handle('app:bootstrap', () => ({
     state, timer: timerSnapshot(), characters: CHARACTERS, emotes: EMOTES,
     ballSize: BALL_SIZE, stickersRoot: 'assets/stickers',
+    env: { portable: isPortableRun(), exePath: process.execPath },
   }));
 
   ipcMain.handle('state:patch', (_e, patch) => {
@@ -776,12 +813,21 @@ function registerIPC() {
     state.alwaysOnTop = !!v; saveState(); applyAlwaysOnTop(); rebuildTray(); broadcast('state:changed', state);
     return state.alwaysOnTop;
   });
+  ipcMain.handle('app:set-auto-start', (_e, v) => setAutoStart(v));
+  ipcMain.handle('app:auto-start-state', () => ({
+    autoStart: state.autoStart, systemOn: systemAutoStartOn(), portable: isPortableRun(),
+  }));
 }
 
 // ────────────────────────────── 启动 ──────────────────────────────
 function main() {
   // Windows 通知需要 AppUserModelId，否则完成提醒可能被系统吞掉
   try { app.setAppUserModelId('com.ben.asoulball'); } catch (_) {}
+  // 以系统实际注册项为准，避免 state 与真实状态不一致（比如手动清过注册表）
+  try {
+    const systemOn = systemAutoStartOn();
+    if (systemOn !== state.autoStart) { state.autoStart = systemOn; saveState(); }
+  } catch (_) {}
   setMode('focus', true);
   timer.remaining = timer.total;
   emitTimer();
