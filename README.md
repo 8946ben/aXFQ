@@ -57,12 +57,12 @@
 
 ## 下载安装
 
-到 [Releases](https://github.com/8946ben/aXFQ/releases) 下载：
+到 [Releases](https://github.com/8946ben/aXFQ/releases) 下载，**推荐安装版**：
 
 | 文件 | 说明 |
 | --- | --- |
-| `ASOUL-Floating-Ball-Setup-1.0.0.exe` | 安装版，可选安装目录，自动创建桌面和开始菜单快捷方式 |
-| `ASOUL-Floating-Ball-Portable-1.0.0.exe` | 便携版，双击即用，不写注册表 |
+| `ASOUL-Floating-Ball-Setup-1.1.0.exe` | **推荐**。安装版，可选安装目录，自动创建桌面和开始菜单快捷方式，支持开机自启 |
+| `ASOUL-Floating-Ball-Portable-1.1.0.exe` | 便携版，双击即用，不写注册表。每次启动约 9 秒（要先解压），**不支持开机自启** |
 
 > 安装包没有代码签名，首次运行 Windows SmartScreen 可能拦一下：「更多信息」→「仍要运行」。
 
